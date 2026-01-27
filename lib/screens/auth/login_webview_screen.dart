@@ -62,10 +62,8 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
         }
       };
       
-      // Check immediately
       checkToken();
       
-      // Monitor localStorage changes
       const originalSetItem = localStorage.setItem;
       localStorage.setItem = function(key, value) {
         originalSetItem.apply(this, arguments);
@@ -74,7 +72,6 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
         }
       };
       
-      // Poll every 500ms as backup
       setInterval(checkToken, 500);
     })();
   ''';
@@ -93,14 +90,19 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
               initialSettings: InAppWebViewSettings(
                 javaScriptEnabled: true,
                 domStorageEnabled: true,
-                allowFileAccessFromFileURLs: true,
-                allowUniversalAccessFromFileURLs: true,
-                cacheEnabled: false,
+                // Fix for Emulator: Disable file access to save memory/security overhead
+                allowFileAccessFromFileURLs: false,
+                allowUniversalAccessFromFileURLs: false,
+                clearCache: false,
+                cacheEnabled: true,
+                // Fix for Emulator: Hybrid Composition is significantly more stable
+                useHybridComposition: true,
+                transparentBackground: true,
+                mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
               ),
               onWebViewCreated: (controller) {
                 _webViewController = controller;
                 
-                // Add handler for token detection
                 controller.addJavaScriptHandler(
                   handlerName: 'tokenFound',
                   callback: (args) async {
@@ -119,21 +121,22 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
               onLoadStop: (controller, url) async {
                 setState(() => _isLoading = false);
                 
-                // Inject CSS for native styling
-                await controller.injectCSSCode(source: _injectedCSS);
+                // Fix for Emulator Crash: Delay injection until browser process is stable
+                await Future.delayed(const Duration(milliseconds: 250));
                 
-                // Inject JS to monitor token
-                await controller.evaluateJavascript(source: _tokenCheckerJS);
+                if (controller != null) {
+                  await controller.injectCSSCode(source: _injectedCSS);
+                  await controller.evaluateJavascript(source: _tokenCheckerJS);
+                }
               },
               onProgressChanged: (controller, progress) {
                 setState(() => _progress = progress / 100);
               },
               onConsoleMessage: (controller, consoleMessage) {
-                print('WebView Console: ${consoleMessage.message}');
+                debugPrint('WebView Console: ${consoleMessage.message}');
               },
             ),
             
-            // Loading indicator
             if (_isLoading)
               Positioned(
                 top: 0,
@@ -146,7 +149,6 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
                 ),
               ),
             
-            // Close button
             Positioned(
               top: 16,
               left: 16,
@@ -170,23 +172,24 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
   }
 
   Future<void> _handleLoginSuccess(String token) async {
-    // Save token
     await _authService.saveToken(token);
     
-    // Show success feedback
     if (mounted) {
+      // 1. Immediately stop the webview from loading anything else
+      await _webViewController?.stopLoading();
+    
+      // 2. Optional: Load a blank page to ensure no web UI is visible
+      await _webViewController?.loadUrl(urlRequest: URLRequest(url: WebUri("about:blank")));
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Login successful!'),
           duration: Duration(seconds: 1),
-          backgroundColor: Colors.green,
+          backgroundColor: Colors.blue,
         ),
       );
       
-      // Wait a moment for visual feedback
       await Future.delayed(const Duration(milliseconds: 500));
-      
-      // Notify parent
       widget.onLoginSuccess(token);
     }
   }

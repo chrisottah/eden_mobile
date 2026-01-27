@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../core/theme/app_theme.dart';
 import 'auth/login_webview_screen.dart';
 import 'chat/chat_screen.dart';
 
@@ -86,37 +87,55 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             children: [
               // Logo
               Container(
-                width: 120,
-                height: 120,
+                width: 100,
+                height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(30),
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryBlue, AppTheme.primaryDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryBlue.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                child: Icon(
-                  Icons.chat_bubble_outline,
-                  size: 60,
-                  color: Colors.blue.shade600,
+                child: const Center(
+                  child: Text(
+                    'E',
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
               
               // App Name
-              Text(
+              const Text(
                 'Eden AI',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                  color: AppTheme.textPrimary,
+                  letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 8),
               
               // Tagline
               Text(
-                'Your AI Companion',
+                'Your Intelligent Companion',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey.shade600,
+                  color: AppTheme.textSecondary,
+                  letterSpacing: 0.5,
                 ),
               ),
               const SizedBox(height: 48),
@@ -127,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 height: 30,
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryBlue),
                 ),
               ),
             ],

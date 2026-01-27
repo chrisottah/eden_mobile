@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'; // Added for debugPrint
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -13,7 +15,7 @@ class AuthService {
     final token = await getToken();
     if (token == null) return false;
     
-    // Verify token is still valid
+    // Verify token is still valid against the backend
     return await _verifyToken(token);
   }
 
@@ -53,10 +55,24 @@ class AuthService {
     }
   }
 
-  // Logout
+  // Logout - This now correctly handles both native and browser sessions
   Future<void> logout() async {
+    // 1. Clear Native Storage
     await _storage.delete(key: _tokenKey);
     await _storage.delete(key: _userKey);
+
+    // 2. Clear WebView Session to prevent the "Auto-Login" loop
+    try {
+      CookieManager cookieManager = CookieManager.instance();
+      await cookieManager.deleteAllCookies();
+
+      final webStorageManager = WebStorageManager.instance();
+      await webStorageManager.deleteAllData();
+      
+      debugPrint("AuthService: Local storage and WebView sessions cleared.");
+    } catch (e) {
+      debugPrint("AuthService: Error during session wipe: $e");
+    }
   }
 
   // Extract token from WebView localStorage
@@ -64,7 +80,7 @@ class AuthService {
     if (jsResult == null || jsResult.isEmpty || jsResult == 'null') {
       return null;
     }
-    // Remove quotes if present
+    // Remove quotes that often come from JS evaluation
     return jsResult.replaceAll('"', '').replaceAll("'", '');
   }
-} 
+}

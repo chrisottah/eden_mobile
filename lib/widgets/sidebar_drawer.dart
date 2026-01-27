@@ -31,13 +31,13 @@ class _SidebarDrawerState extends State<SidebarDrawer> {
 
   Future<void> _loadChatHistory() async {
     try {
-      final chats = await _apiClient.getChats();
+      final chats = await _apiClient.getChatList();
       setState(() {
         _chatHistory = chats
             .map((chat) => ChatHistory(
-                  id: chat['id'] ?? '',
-                  title: chat['title'] ?? 'Untitled Chat',
-                  timestamp: chat['created_at'] ?? '',
+                  id: chat.id,
+                  title: chat.title,
+                  timestamp: chat.updatedAt.toIso8601String(),
                 ))
             .toList();
         _isLoading = false;

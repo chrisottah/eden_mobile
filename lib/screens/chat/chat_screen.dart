@@ -49,7 +49,6 @@ class _ChatScreenState extends State<ChatScreen> {
     final message = _messageController.text.trim();
     if (message.isEmpty || _isStreaming) return;
 
-    // Add user message
     setState(() {
       _messages.add(ChatMessage(content: message, isUser: true));
       _messageController.clear();
@@ -60,15 +59,13 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
 
     try {
-      // Stream AI response
-      await for (var chunk in _apiClient.sendMessage(message, _selectedModel)) {
+      await for (var chunk in _apiClient.sendMessageStream(message, _selectedModel)) {
         setState(() {
           _streamingMessage += chunk;
         });
         _scrollToBottom();
       }
 
-      // Finalize streamed message
       if (_streamingMessage.isNotEmpty) {
         setState(() {
           _messages.add(ChatMessage(content: _streamingMessage, isUser: false));
@@ -157,12 +154,32 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: _newChat,
             tooltip: 'New Chat',
           ),
+
+          /// 🔒 UPDATED LOGOUT BUTTON (confirmation dialog)
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await _authService.logout();
-              if (mounted) {
-                Navigator.of(context).pushReplacement(
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true && mounted) {
+                await _authService.logout();
+                Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
                     builder: (_) => LoginWebViewScreen(
                       onLoginSuccess: (token) {
@@ -172,6 +189,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       },
                     ),
                   ),
+                  (route) => false,
                 );
               }
             },
@@ -182,7 +200,6 @@ class _ChatScreenState extends State<ChatScreen> {
       drawer: const SidebarDrawer(),
       body: Column(
         children: [
-          // Messages list
           Expanded(
             child: _messages.isEmpty && !_isStreaming
                 ? Center(
@@ -217,18 +234,17 @@ class _ChatScreenState extends State<ChatScreen> {
                           isUser: message.isUser,
                         );
                       } else {
-                        // Streaming message
                         return MessageBubble(
                           message: _streamingMessage.isEmpty ? '...' : _streamingMessage,
                           isUser: false,
                           isStreaming: true,
+                          modelName: _selectedModel,
                         );
                       }
                     },
                   ),
           ),
-          
-          // Input area
+
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

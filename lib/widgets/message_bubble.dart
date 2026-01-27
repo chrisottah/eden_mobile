@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import '../core/theme/app_theme.dart';
 
 class MessageBubble extends StatelessWidget {
   final String message;
   final bool isUser;
   final bool isStreaming;
+  final String? modelName;
   final VoidCallback? onCopy;
 
   const MessageBubble({
@@ -13,6 +15,7 @@ class MessageBubble extends StatelessWidget {
     required this.message,
     required this.isUser,
     this.isStreaming = false,
+    this.modelName,
     this.onCopy,
   }) : super(key: key);
 
@@ -27,11 +30,11 @@ class MessageBubble extends StatelessWidget {
           if (!isUser) ...[
             CircleAvatar(
               radius: 18,
-              backgroundColor: Colors.blue.shade100,
-              child: Icon(
+              backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+              child: const Icon(
                 Icons.smart_toy_outlined,
                 size: 20,
-                color: Colors.blue.shade700,
+                color: AppTheme.primaryBlue,
               ),
             ),
             const SizedBox(width: 12),
@@ -46,41 +49,60 @@ class MessageBubble extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isUser ? Colors.blue.shade600 : Colors.grey.shade100,
+                    color: isUser ? AppTheme.primaryBlue : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(18).copyWith(
                       topLeft: isUser ? const Radius.circular(18) : const Radius.circular(4),
                       topRight: isUser ? const Radius.circular(4) : const Radius.circular(18),
                     ),
                   ),
-                  child: isUser
-                      ? Text(
-                          message,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Model name header for AI responses
+                      if (!isUser && modelName != null) ...[
+                        Text(
+                          modelName!,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            height: 1.4,
-                          ),
-                        )
-                      : MarkdownBody(
-                          data: message,
-                          selectable: true,
-                          styleSheet: MarkdownStyleSheet(
-                            p: TextStyle(
-                              color: Colors.grey.shade900,
-                              fontSize: 15,
-                              height: 1.4,
-                            ),
-                            code: TextStyle(
-                              backgroundColor: Colors.grey.shade200,
-                              color: Colors.red.shade700,
-                              fontSize: 14,
-                            ),
-                            codeblockDecoration: BoxDecoration(
-                              color: Colors.grey.shade900,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.primaryBlue,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                      ],
+                      
+                      // Message content
+                      isUser
+                          ? Text(
+                              message,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                height: 1.4,
+                              ),
+                            )
+                          : MarkdownBody(
+                              data: message,
+                              selectable: true,
+                              styleSheet: MarkdownStyleSheet(
+                                p: TextStyle(
+                                  color: Colors.grey.shade900,
+                                  fontSize: 15,
+                                  height: 1.4,
+                                ),
+                                code: TextStyle(
+                                  backgroundColor: Colors.grey.shade200,
+                                  color: Colors.red.shade700,
+                                  fontSize: 14,
+                                ),
+                                codeblockDecoration: BoxDecoration(
+                                  color: Colors.grey.shade900,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                    ],
+                  ),
                 ),
                 
                 // Streaming indicator or actions
@@ -139,10 +161,10 @@ class MessageBubble extends StatelessWidget {
           // User avatar
           if (isUser) ...[
             const SizedBox(width: 12),
-            CircleAvatar(
+            const CircleAvatar(
               radius: 18,
-              backgroundColor: Colors.blue.shade600,
-              child: const Icon(
+              backgroundColor: AppTheme.primaryBlue,
+              child: Icon(
                 Icons.person,
                 size: 20,
                 color: Colors.white,
