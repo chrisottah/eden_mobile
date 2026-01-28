@@ -7,7 +7,6 @@ A cross-platform mobile application for Eden AI, built with Flutter.
 - 🔐 Multi-provider authentication (Email, Google OAuth, KingsChat OAuth)
 - 💬 Real-time chat with AI models
 - 📱 Native iOS and Android support
-- 🎨 Beautiful, intuitive UI inspired by Conduit
 - 🔄 Synchronized authentication with web platform
 - 💾 Secure local storage for tokens and chat history
 
@@ -43,17 +42,6 @@ flutter run -d android
 ### Configuration
 
 Base URL: `https://edenhub.io`
-
-## Project Structure
-
-```
-lib/
-├── core/           # Constants, theme, utilities
-├── data/           # Models and repositories
-├── services/       # API client, auth service
-├── screens/        # UI screens
-└── widgets/        # Reusable widgets
-```
 
 ## License
 
