@@ -1,23 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'app.dart';
-import 'services/auth_service.dart';
-import 'services/api_client.dart';
+import 'screens/splash_screen.dart';
+import 'screens/web_shell_screen.dart';
 
 void main() {
-  // Ensures the Flutter engine is fully initialized before 
-  // we try to access plugins like flutter_secure_storage.
   WidgetsFlutterBinding.ensureInitialized();
-  
-  runApp(
-    MultiProvider(
-      providers: [
-        // Providing AuthService here resolves the "children.isNotEmpty" crash
-        // and makes authentication logic available throughout the app.
-        Provider<AuthService>(create: (_) => AuthService()),
-        Provider<ApiClient>(create: (_) => ApiClient()),
-      ],
-      child: const EdenApp(),
-    ),
-  );
+  runApp(const EdenAIApp());
+}
+
+class EdenAIApp extends StatelessWidget {
+  const EdenAIApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Eden AI',
+      debugShowCheckedModeBanner: false,
+      // 🚀 Syncs app theme with phone settings
+      themeMode: ThemeMode.system, 
+      
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+        primaryColor: Colors.blueAccent,
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.white, foregroundColor: Colors.black),
+      ),
+      
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0F0F0F), // Matches deep dark web apps
+        primaryColor: Colors.blueAccent,
+        appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF0F0F0F), foregroundColor: Colors.white),
+      ),
+      
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const SplashScreen(),
+        '/home': (context) => const WebShellScreen(),
+      },
+    );
+  }
 }
